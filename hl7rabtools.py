@@ -2,7 +2,6 @@ import pika
 import os
 import hl7tools
 
-
 # connection
 def RabbitCon(qe):
     con = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -11,13 +10,11 @@ def RabbitCon(qe):
     # chan.basic_qos(prefetch_count=1)
     return con, chan
 
-
 # Queue deletion
 def RabbitDelQ(qe):
     con = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     chan = con.channel()
     chan.queue_delete(queue=qe)
-
 
 # Provider - process which generates the data
 def RabbitProv(qe, msg):
@@ -27,7 +24,6 @@ def RabbitProv(qe, msg):
                            delivery_mode=2, ))  # delivery_mode = 2 => message are persistent
     con.close()
     return "ok"
-
 
 # Consumer function
 def callback_utf8(ch, method, properties, body):
@@ -48,7 +44,6 @@ def RabbitCus(qe):
     elif qe.split('_')[-1] == 'iso-8859-1':
         chan.basic_consume(callback_iso8859, queue=qe)
     chan.start_consuming()
-
 
 def RabbitMenu(func,queue=None,msg=None):
     if func == "prov":

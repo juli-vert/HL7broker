@@ -1,13 +1,11 @@
 from socketserver import TCPServer, ThreadingMixIn, ThreadingTCPServer
 from socketserver import StreamRequestHandler as srh
-from hl7tools import childDiscovery as cdy
-from hl7apy.core import Message
-from hl7apy.parser import parse_message as pm
 import sys
 import hl7rabtools
 import hl7tools
 
 supported_codec = ['utf-8', 'iso-8859-1']
+
 class MLLPServerAbstract:
     def __init__(self, name, encod, host=None, port=None):
         self.host = host
@@ -46,7 +44,6 @@ class TCPHL7HandleAbstract(srh):
             self.wfile.write(bytes('ACK: Message received type {0}'.format(tmsg), self.server.encoding))
         else:
             print("Encoding not supported")
-
 
 if __name__ == "__main__":
     # host, port = "127.0.0.1", 6789

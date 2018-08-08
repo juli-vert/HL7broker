@@ -2,7 +2,6 @@ import threading
 import hl7server
 import hl7rabtools
 
-
 class SrvThread(threading.Thread):
     def __init__(self, server):
         threading.Thread.__init__(self)
@@ -10,7 +9,6 @@ class SrvThread(threading.Thread):
 
     def run(self):
         self.server.run()
-
 
 class RabThread(threading.Thread):
     def __init__(self, queue):
@@ -32,11 +30,9 @@ class hl7orchestrator:
         self.server.setPort(port)
         th1 = SrvThread(self.server)
         th1.start()
-        # _thread.start_new_thread(self.server.run())
         print("Server running")
         th2 = RabThread('qe_{0}_{1}'.format(self.name, self.encoding))
         th2.start()
-        # _thread.start_new_thread(hl7rabtools.RabbitCus, ('qe_{0}_{1}'.format(self.name, self.encoding),))
         print("Cosumer running")
 
 
