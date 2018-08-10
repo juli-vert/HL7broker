@@ -9,6 +9,7 @@ from hl7.client import MLLPClient as mlc
 from datetime import datetime as dt
 from xml.dom import minidom
 import json
+import sys
 
 logpath = r"C:\Users\pgil\OneDrive for Business\PyHL7\logs\parser.log"
 respath = r"C:\Users\pgil\OneDrive for Business\PyHL7\logs\results"
@@ -22,7 +23,21 @@ def getMsgType(msg, encoding):
     except:
         print("Impossible to parse message: ", sys.exc_info()[0])
     finally:
-        return msh.value
+        if isinstance(msh,str):
+            return msh
+        else:
+            return msh.value
+
+def genACK(msg, encoding):
+    try:
+        m = pm(msg)
+        res = Message('RSP_K11')
+        res.MSH.MSH_9 = 'RSP^K11^RSP_K11'
+        res.MSA = "MSA|AA"
+        res.MSA.MSA_2 = m.MSH.MSH_10
+        return res.to_mllp()
+    except:
+        print("Impossible to generate ACK: ", sys.exc_info()[0])
 
 # Generic Parsers
 def hl7parserXML(body, encoding):

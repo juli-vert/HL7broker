@@ -43,7 +43,8 @@ class TCPHL7HandleAbstract(srh):
             print("Encoding detected {0}".format(self.server.encoding))
             hl7rabtools.RabbitProv(qe, self.data.decode(self.server.encoding))
             tmsg = hl7tools.getMsgType(self.data.decode(self.server.encoding), self.server.encoding)
-            self.wfile.write(bytes('ACK: Message received type {0}'.format(tmsg), self.server.encoding))
+            #self.wfile.write(bytes('ACK: Message received type {0}'.format(tmsg), self.server.encoding))
+            self.wfile.write(bytes(hl7tools.genACK(self.data.decode(self.server.encoding), self.server.encoding), self.server.encoding))
         else:
             print("Encoding not supported")
 
