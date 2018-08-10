@@ -3,8 +3,9 @@ from socketserver import StreamRequestHandler as srh
 import sys
 import hl7rabtools
 import hl7tools
+import time
 
-supported_codec = ['utf-8', 'iso-8859-1']
+supported_codec = ['utf-8', 'iso-8859-1', 'cp1252']
 
 class MLLPServerAbstract:
     def __init__(self, name, encod, host=None, port=None):
@@ -34,6 +35,7 @@ class TCPBasicHandle(srh):
 
 class TCPHL7HandleAbstract(srh):
     def handle(self):
+        time.sleep(2)
         self.data = self.request.recv(65536).strip()
         # codec = self.data.decode('cp1252').split('%', 1)[0]
         qe = 'qe_{0}_{1}'.format(self.server.name, self.server.encoding)

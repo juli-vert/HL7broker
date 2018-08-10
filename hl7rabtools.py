@@ -27,11 +27,15 @@ def RabbitProv(qe, msg):
 
 # Consumer function
 def callback_utf8(ch, method, properties, body):
-    hl7tools.hl7parser(body,'utf-8')
+    hl7tools.hl7parserXML(body,'utf-8')
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def callback_iso8859(ch, method, properties, body):
-    hl7tools.hl7parser(body, 'iso-8859-1')
+    hl7tools.hl7parserXML(body, 'iso-8859-1')
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+def callback_cp1252(ch, method, properties, body):
+    hl7tools.hl7parserJSON(body, 'cp1252')
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 # Consumer - process which uses the data
@@ -43,6 +47,8 @@ def RabbitCus(qe):
         chan.basic_consume(callback_utf8, queue=qe)
     elif qe.split('_')[-1] == 'iso-8859-1':
         chan.basic_consume(callback_iso8859, queue=qe)
+    elif qe.split('_')[-1] == 'cp1252':
+        chan.basic_consume(callback_cp1252, queue=qe)
     chan.start_consuming()
 
 def RabbitMenu(func,queue=None,msg=None):
