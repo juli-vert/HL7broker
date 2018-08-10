@@ -1,0 +1,8 @@
+HL7 broker in python with:
+Generic TCP server
+Messaging queue management by Rabbit-MQ
+Multi-encoding support
+XML and JSON parsing output options
+
+- Using hl7apy from CRS4: https://github.com/crs4/hl7apy
+
