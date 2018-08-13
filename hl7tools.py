@@ -42,7 +42,7 @@ def genACK(msg, encoding):
 # Generic Parsers
 def hl7parserXML(body, encoding):
     m = pm(body.decode(encoding))
-    childDiscovery(m)
+    childDiscovery(m, encoding)
     if m.MSH.MSH_9.value == "ORM^O01":
         an = m.ORM_O01_ORDER.ORM_O01_ORDER_DETAIL.ORM_O01_CHOICE.OBR.OBR_3.value
         doc = minidom.Document()
@@ -86,7 +86,7 @@ def hl7parserXML(body, encoding):
         inchild.appendChild(childtext)
         child.appendChild(inchild)
         outfl = path.join(respath, '{0}.{1}'.format(an, "xml"))
-        with open(outfl,'w') as res:
+        with open(outfl,'w', encoding=encoding) as res:
             doc.writexml(res,encoding=encoding, indent=" ", addindent=" ", newl="\n")
         doc.unlink()
         print("Processed ",an)
@@ -95,7 +95,7 @@ def hl7parserXML(body, encoding):
 
 def hl7parserJSON(body, encoding):
     m = pm(body.decode(encoding))
-    childDiscovery(m)
+    childDiscovery(m, encoding)
     if m.MSH.MSH_9.value == "ORM^O01":
         an = m.ORM_O01_ORDER.ORM_O01_ORDER_DETAIL.ORM_O01_CHOICE.OBR.OBR_3.value
         outfl = path.join(respath, '{0}.{1}'.format(an, "json"))
@@ -119,7 +119,7 @@ def hl7parserJSON(body, encoding):
                 "Patient_Sex": patsex
             }
         }
-        with open(outfl, 'w') as res:
+        with open(outfl, 'w', encoding=encoding) as res:
             json.dump(data, res)
         print("Processed ", an)
     else:
@@ -138,31 +138,31 @@ def childDiscovery_(item):
             print('---> Item: {0} - {1} = {2}'.format(it.long_name, it.name, it.value))
 
 # Message tree using logfile
-def childDiscovery(item):
+def childDiscovery(item, enc):
     ts = dt.now()
-    with open(logpath,'a') as log:
+    with open(logpath,'a', encoding=enc) as log:
         log.write('{0}/{1}/{2}-{3}:{4}:{5} -> Parsed message\n'.format(ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second))
-    childDiscoveryRec(item,1)
-    with open(logpath,'a') as log:
+    childDiscoveryRec(item,1, enc)
+    with open(logpath,'a', encoding=enc) as log:
         log.write('-----------------------------------------------------------\n')
 
 # Recursive function of childDiscovery
-def childDiscoveryRec(item, lvl):
+def childDiscoveryRec(item, lvl, enc):
     depth = ""
     for i in range(0,lvl):
         depth = depth+"-"
     newlvl = lvl + 1
     for it in item.children:
         if type(it) is hl7apy.core.Group:
-            with open(logpath,'a') as log:
+            with open(logpath,'a', encoding=enc) as log:
                 log.write('{1}> Group: {0}\n'.format(it.name,depth))
-            childDiscoveryRec(it, newlvl)
+            childDiscoveryRec(it, newlvl, enc)
         elif type(it) is hl7apy.core.Segment:
-            with open(logpath, 'a') as log:
+            with open(logpath, 'a', encoding=enc) as log:
                 log.write('{1}-> Segment: {0}\n'.format(it.name, depth))
-            childDiscoveryRec(it, newlvl)
+            childDiscoveryRec(it, newlvl, enc)
         else:
-            with open(logpath, 'a') as log:
+            with open(logpath, 'a', encoding=enc) as log:
                 log.write('{3}--> Item: {0} - {1} = {2}\n'.format(it.long_name, it.name, it.value, depth))
 
 # Readers

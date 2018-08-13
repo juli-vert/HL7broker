@@ -35,8 +35,20 @@ class TCPBasicHandle(srh):
 
 class TCPHL7HandleAbstract(srh):
     def handle(self):
-        time.sleep(2)
-        self.data = self.request.recv(65536).strip()
+        ''' no better way to get long messages
+        wait 2 seconds to ensure we got everything with less than 64K bytes'''
+        # time.sleep(2)
+        # self.data = self.request.recv(65536).strip()
+        ''' trying to find the EOF'''
+        eof = False
+        chunk = ""
+        msg = ""
+        while not eof:
+            chunk = self.request.recv(1480).strip()
+            if len(chunk) == 0:
+                eof = True
+            msg = msg + chunk.decode(self.server.encoding)
+        self.data = msg.encode(self.server.encoding)
         # codec = self.data.decode('cp1252').split('%', 1)[0]
         qe = 'qe_{0}_{1}'.format(self.server.name, self.server.encoding)
         if self.server.encoding in supported_codec:

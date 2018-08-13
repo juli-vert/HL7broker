@@ -31,7 +31,7 @@ def callback_utf8(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def callback_iso8859(ch, method, properties, body):
-    hl7tools.hl7parserXML(body, 'iso-8859-1')
+    hl7tools.hl7parserJSON(body, 'iso-8859-1')
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def callback_cp1252(ch, method, properties, body):
