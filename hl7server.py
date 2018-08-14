@@ -3,7 +3,6 @@ from socketserver import StreamRequestHandler as srh
 import sys
 import hl7rabtools
 import hl7tools
-import time
 
 supported_codec = ['utf-8', 'iso-8859-1', 'cp1252']
 
@@ -34,44 +33,22 @@ class TCPBasicHandle(srh):
         self.wfile.write(bytes("ACK: {0}".format(self.data), "utf-8"))
 
 class TCPHL7HandleAbstract(srh):
-    # Handle version 1
+    '''
+    ~ Handle version 1
     # A way to get long messages is waiting some second to full the buffer.
     # In our case: 2 seconds to ensure we got everything with less than 64K bytes
-    '''def handle(self):
-        time.sleep(2)
-        self.data = self.request.recv(65536).strip()
-        print(self.data.decode(self.server.encoding))
-        # codec = self.data.decode('cp1252').split('%', 1)[0]
-        qe = 'qe_{0}_{1}'.format(self.server.name, self.server.encoding)
-        if self.server.encoding in supported_codec:
-            print("Encoding detected {0}".format(self.server.encoding))
-            hl7rabtools.RabbitProv(qe, self.data.decode(self.server.encoding))
-            # tmsg = hl7tools.getMsgType(self.data.decode(self.server.encoding), self.server.encoding)
-            # self.wfile.write(bytes('ACK: Message received type {0}'.format(tmsg), self.server.encoding))
-            self.wfile.write(bytes(hl7tools.genACK(self.data.decode(self.server.encoding), self.server.encoding), self.server.encoding))
-        else:
-            print("Encoding not supported")'''
+     time.sleep(2)
+     self.data = self.request.recv(65536).strip()
 
-    # Handle version 2
+    ~ Handle version 2
     # Read the rfile, but it's just readable once the client close the connection
-    # due a write_handle making it not available to be readed before
-    '''def V2handle(self):
-        # codec = self.data.decode('cp1252').split('%', 1)[0]
-        qe = 'qe_{0}_{1}'.format(self.server.name, self.server.encoding)
-        if self.server.encoding in supported_codec:
-            print("Entering the handle")
-            self.data = self.rfile.read()
-            print("Able to read the request")
-            self.wfile.write(bytes(hl7tools.genACK(self.data.decode(self.server.encoding), self.server.encoding), self.server.encoding))
-            print("Encoding detected {0}".format(self.server.encoding))
-            hl7rabtools.RabbitProv(qe, self.data.decode(self.server.encoding))
-        else:
-            print("Encoding not supported")'''
+    # due a write_handle making it not available to be read before
+     self.data = self.rfile.read()
 
-    # Handle version 3
+    ~ Handle version 3
     # Read an amount of data until we find the EOM
     # In our case <FS><CR> = 0x1C 0x0D
-    # Check the SOM as well <VT> = 0x0B
+    # Check the SOM as well <VT> = 0x0B'''
     def handle(self):
         msg = b""
         eom = False
