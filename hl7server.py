@@ -34,32 +34,67 @@ class TCPBasicHandle(srh):
         self.wfile.write(bytes("ACK: {0}".format(self.data), "utf-8"))
 
 class TCPHL7HandleAbstract(srh):
-    def handle(self):
-        ''' no better way to get long messages
-        wait 2 seconds to ensure we got everything with less than 64K bytes'''
-        # time.sleep(2)
-        # self.data = self.request.recv(65536).strip()
-        ''' trying to find the EOF'''
-        eof = False
-        chunk = ""
-        msg = ""
-        while not eof:
-            chunk = self.request.recv(1480).strip()
-            if len(chunk) == 0:
-                eof = True
-            msg = msg + chunk.decode(self.server.encoding)
-        self.data = msg.encode(self.server.encoding)
+    # Handle version 1
+    # A way to get long messages is waiting some second to full the buffer.
+    # In our case: 2 seconds to ensure we got everything with less than 64K bytes
+    '''def handle(self):
+        time.sleep(2)
+        self.data = self.request.recv(65536).strip()
+        print(self.data.decode(self.server.encoding))
         # codec = self.data.decode('cp1252').split('%', 1)[0]
         qe = 'qe_{0}_{1}'.format(self.server.name, self.server.encoding)
         if self.server.encoding in supported_codec:
             print("Encoding detected {0}".format(self.server.encoding))
             hl7rabtools.RabbitProv(qe, self.data.decode(self.server.encoding))
-            tmsg = hl7tools.getMsgType(self.data.decode(self.server.encoding), self.server.encoding)
-            #self.wfile.write(bytes('ACK: Message received type {0}'.format(tmsg), self.server.encoding))
+            # tmsg = hl7tools.getMsgType(self.data.decode(self.server.encoding), self.server.encoding)
+            # self.wfile.write(bytes('ACK: Message received type {0}'.format(tmsg), self.server.encoding))
             self.wfile.write(bytes(hl7tools.genACK(self.data.decode(self.server.encoding), self.server.encoding), self.server.encoding))
         else:
-            print("Encoding not supported")
+            print("Encoding not supported")'''
 
+    # Handle version 2
+    # Read the rfile, but it's just readable once the client close the connection
+    # due a write_handle making it not available to be readed before
+    '''def V2handle(self):
+        # codec = self.data.decode('cp1252').split('%', 1)[0]
+        qe = 'qe_{0}_{1}'.format(self.server.name, self.server.encoding)
+        if self.server.encoding in supported_codec:
+            print("Entering the handle")
+            self.data = self.rfile.read()
+            print("Able to read the request")
+            self.wfile.write(bytes(hl7tools.genACK(self.data.decode(self.server.encoding), self.server.encoding), self.server.encoding))
+            print("Encoding detected {0}".format(self.server.encoding))
+            hl7rabtools.RabbitProv(qe, self.data.decode(self.server.encoding))
+        else:
+            print("Encoding not supported")'''
+
+    # Handle version 3
+    # Read an amount of data until we find the EOM
+    # In our case <FS><CR> = 0x1C 0x0D
+    # Check the SOM as well <VT> = 0x0B
+    def handle(self):
+        msg = b""
+        eom = False
+        while not eom:
+            chunk = b""
+            chunk = self.request.recv(1024)
+            if b"\x0b" in chunk:
+                print("Start of Message")
+                chunk = chunk.lstrip(b"\x0b")
+            if b"\x1c\x0d" in chunk:
+                eom = True
+                print("End of Message")
+                chunk = chunk.strip(b'\x0d').strip(b'\x1c')
+            msg = msg + chunk
+        self.data = msg
+        qe = 'qe_{0}_{1}'.format(self.server.name, self.server.encoding)
+        if self.server.encoding in supported_codec:
+            print("Encoding detected {0}".format(self.server.encoding))
+            hl7rabtools.RabbitProv(qe, self.data.decode(self.server.encoding))
+            self.wfile.write(bytes(hl7tools.genACK(self.data, self.server.encoding),
+                                   self.server.encoding))
+        else:
+            print("Encoding not supported")
 if __name__ == "__main__":
     # host, port = "127.0.0.1", 6789
     if len(sys.argv) < 3:

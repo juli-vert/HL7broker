@@ -30,14 +30,23 @@ def getMsgType(msg, encoding):
 
 def genACK(msg, encoding):
     try:
-        m = pm(msg)
+        m = pm(msg.decode(encoding))
         res = Message('RSP_K11')
         res.MSH.MSH_9 = 'RSP^K11^RSP_K11'
         res.MSA = "MSA|AA"
         res.MSA.MSA_2 = m.MSH.MSH_10
-        return res.to_mllp()
+    except AttributeError as e:
+        print("Impossible to generate ACK: {0}".format(e))
+        res = Message('RSP_K11')
+        res.MSH.MSH_9 = 'RSP^K11^RSP_K11'
+        res.MSA = "MSA|AA"
     except:
-        print("Impossible to generate ACK: ", sys.exc_info()[0])
+        print("Error trying to generate ACK: ", sys.exc_info()[0])
+        res = Message('RSP_K11')
+        res.MSH.MSH_9 = 'RSP^K11^RSP_K11'
+        res.MSA = "MSA|AA"
+    finally:
+        return res.to_mllp()
 
 # Generic Parsers
 def hl7parserXML(body, encoding):
